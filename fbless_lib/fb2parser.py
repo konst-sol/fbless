@@ -141,16 +141,11 @@ class ContentHandler:
 ##----------------------------------------------------------------------
 
 def fb2parse(data):
-
-    if not data.startswith('<?xml'):
-        print ('Warning: file is not an XML file. Skipped.')
-        return None
-
     global _parser
 
     # remove invalid chars
-    tab = bytes.maketrans(b'', b'')
-    data = data.translate('\07\032') # XXX: add other invalid chars here
+    #tab = bytes.maketrans(b'', b'')
+    #data = data.translate(b'\07\032') # XXX: add other invalid chars here
 
     content_handler = ContentHandler()
 

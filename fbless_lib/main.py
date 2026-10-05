@@ -12,20 +12,15 @@ from io import StringIO
 import time
 import curses
 import curses.ascii as ascii
-from . import utils
-import codecs
+
 from fbless_lib.fb2parser import fb2parse
 from fbless_lib.paragraph import attr
-import fbless_lib.options
-
-locale.setlocale(locale.LC_ALL,"")
-default_charset = locale.getdefaultlocale()[1]
+import fbless_lib.options as options
 
 
 class MainWindow:
 
     def __init__(self):
-
         self.filename = None
         if len(sys.argv) > 1:
             self.filename = os.path.abspath(sys.argv[1])
@@ -55,12 +50,11 @@ class MainWindow:
         self.message_timeout = 0
 
         #signal.signal(signal.SIGWINCH, self.resize_window)
-        self.term_width = utils.get_terminal_size()
         self.screen = curses.initscr()
         curses.noecho()
         curses.cbreak()
         curses.start_color()
-        if fbless_lib.options.use_default_colors:
+        if options.use_default_colors:
             curses.use_default_colors()
         self.init_color()
         self.init_screen(self.screen)
@@ -83,7 +77,7 @@ class MainWindow:
     def load_positions(self):
         positions = []
         try:
-            d = open(os.path.expanduser(fbless_lib.options.rc_file)).read()
+            d = open(os.path.expanduser(options.rc_file)).read()
         except:
             pass
         else:
@@ -102,36 +96,36 @@ class MainWindow:
         for l in positions:
             if l[0] != self.filename:
                 save_pos.append(l)
-        fd = open(os.path.expanduser(fbless_lib.options.rc_file), 'w')
+        fd = open(os.path.expanduser(options.rc_file), 'w')
         for l in save_pos:
-            print ('>>', fd, ' '.join(l))
+            print (' '.join(l), file=fd)
 
     def init_color(self):
         n = 1
-        for i in fbless_lib.options.options:
-            fg = fbless_lib.options.options[i]['foreground']
-            bg = fbless_lib.options.options[i]['background']
+        for i in options.options:
+            fg = options.options[i]['foreground']
+            bg = options.options[i]['background']
             if fg is None and bg is None:
-                fbless_lib.options.options[i]['color'] = None
+                options.options[i]['color'] = None
                 continue
             if fg is None:
-                fg = fbless_lib.options.options['default']['foreground']
+                fg = options.options['default']['foreground']
             if bg is None:
-                bg = fbless_lib.options.options['default']['background']
+                bg = options.options['default']['background']
             curses.init_pair(n, fg, bg)
-            fbless_lib.options.options[i]['color'] = n
+            options.options[i]['color'] = n
             n += 1
-        if not fbless_lib.options.use_default_colors:
-            n = fbless_lib.options.options['default']['color']
+        if not options.use_default_colors:
+            n = options.options['default']['color']
             self.screen.bkgdset(ord(' '), curses.color_pair(n))
 
     def add_str(self, line, type):
         # add string to current cursor position
 
-        if type in fbless_lib.options.options:
-            opt = fbless_lib.options.options[type]
+        if type in options.options:
+            opt = options.options[type]
         else:
-            opt = fbless_lib.options.options['default']
+            opt = options.options['default']
 
         cur_attr = None
         in_search = False
@@ -139,11 +133,11 @@ class MainWindow:
             if isinstance(s, int):
                 # attribute
                 if s == attr.strong:
-                    cur_attr = fbless_lib.options.options['strong']['color']
+                    cur_attr = options.options['strong']['color']
                 elif s == attr.emphasis:
-                    cur_attr = fbless_lib.options.options['emphasis']['color']
+                    cur_attr = options.options['emphasis']['color']
                 elif s == attr.style:
-                    cur_attr = fbless_lib.options.options['style']['color']
+                    cur_attr = options.options['style']['color']
                 elif s == attr.left_spaces:
                     # leading spaces
                     cur_attr = s #options.options['default']['color']
@@ -158,16 +152,13 @@ class MainWindow:
 
             elif isinstance(s, tuple):
                 # link
-                cur_attr = fbless_lib.options.options['a']['color']
+                cur_attr = options.options['a']['color']
                 yx = list(self.screen.getyx())
                 yx.append(s[1])         # add link name (href)
                 self.link_pos.append(yx)
                 continue
 
             # string
-            #s = s.encode(default_charset, 'replace')
-            #s = bytes(s, 'ISO-8859-1').decode('ISO-8859-1').decode('ISO-8859-1', 'replace')
-            s = s
             if in_search:
                 a = curses.A_REVERSE
             else:
@@ -200,7 +191,7 @@ class MainWindow:
             self.add_str(s, type)
             _par_index, _line_index = self.content.indexes()
             i += 1
-            if i > curses.LINES - fbless_lib.options.status - 1:
+            if i > curses.LINES - options.status - 1:
                 break
             self.screen.move(i, 0)
             _line_index += 1
@@ -228,7 +219,7 @@ class MainWindow:
         # Note: this function calling before scrolling
         if not self.link_pos:
             return
-        lines = curses.LINES - fbless_lib.options.status
+        lines = curses.LINES - options.status
         links = []
         i = 0
         for link in self.link_pos:
@@ -264,11 +255,9 @@ class MainWindow:
         #self.screen.nodelay(0)
         s = ''
         while True:
-            ch = self.screen.getch()
-            if ch in (curses.KEY_ENTER, ascii.NL):
+            ch = self.screen.get_wch()
+            if ch in ('\n', '\r'):
                 break
-            #elif ch in (curses.KEY_ENTER, ord('\n')):
-            #    return ''
             elif ch in (curses.KEY_BACKSPACE, curses.KEY_LEFT,
                         ascii.DEL, ascii.BS):
                 if not s: break
@@ -276,9 +265,13 @@ class MainWindow:
                 self.screen.move(y, x-1)
                 self.screen.delch()
                 s = s[:-1]
+            elif ch == curses.KEY_RESIZE:
+                # FIXME
+                curses.update_lines_cols()
+                self.resize_window()
             elif validator(ch):
-                self.screen.addstr(chr(ch))
-                s += chr(ch)
+                self.screen.addstr(ch)
+                s += ch
         return s
 
     def search(self):
@@ -288,20 +281,11 @@ class MainWindow:
         self.screen.addstr('Search pattern: ')
         self.screen.nodelay(0)
         def validator(ch):
-            # FIXME
-            #print '>', ch
-            #return True
-            return 0 <= ch < 256
-##             try:
-##                 uch = unicode(ch, default_charset)
-##             except Exception, ex:
-##                 #print '--', ex
-##                 return False
-##             return True
+            #print('>', ch)
+            return isinstance(ch, str) and ch.isprintable()
         s = self.get_str(validator)
-        s = unicode(s, default_charset)
         self.screen.nodelay(1)
-        #print 'search:', s.encode(default_charset)
+        #print('search:', s)
         if not s:
             return
         found = self.content.search(s, self.par_index, self.line_index)
@@ -330,7 +314,6 @@ class MainWindow:
         self.redraw_scr()
 
     def goto_percent(self):
-        # FIXME
         self.screen.move(curses.LINES-1, 0)
         self.screen.clrtoeol()
         self.screen.addstr('Go(%): ')
@@ -338,7 +321,8 @@ class MainWindow:
         #curses.echo()
         #s = self.screen.getstr()
         def validator(ch):
-            return ch < 256 and chr(ch) in '0123456789'
+            #return ch < 256 and chr(ch) in '0123456789'
+            return isinstance(ch, str) and ch.isdigit()
         s = self.get_str(validator)
         #print 'str:', s
         #self.screen.nodelay(1)
@@ -416,7 +400,7 @@ class MainWindow:
         self.par_index, self.line_index = self.content.indexes()
 
     def scroll_down(self):
-        n = curses.LINES - fbless_lib.options.status
+        n = curses.LINES - options.status
         try:
             s, type = self.content.get(self.par_index, self.line_index+n)
         except IndexError:
@@ -427,7 +411,7 @@ class MainWindow:
         self.update_links_pos(1)
 
         self.screen.scroll(1)
-        self.screen.move(curses.LINES-1-fbless_lib.options.status, 0)
+        self.screen.move(curses.LINES-1-options.status, 0)
         self.screen.clrtoeol()
         self.add_str(s, type)
 
@@ -436,7 +420,7 @@ class MainWindow:
             self.par_index, self.line_index)
 
     def next_page(self):
-        n = curses.LINES - fbless_lib.options.context_lines - fbless_lib.options.status
+        n = curses.LINES - options.context_lines - options.status
         try:
             s, type = self.content.get(self.par_index, self.line_index+n)
         except IndexError:
@@ -452,7 +436,7 @@ class MainWindow:
         if self.par_index == 0 and self.line_index == 0:
             return
         self.update_status = True
-        n = curses.LINES - fbless_lib.options.context_lines - fbless_lib.options.status
+        n = curses.LINES - options.context_lines - options.status
         self.line_index -= n
         self.redraw_scr()
         self.par_index, self.line_index = self.content.indexes(
@@ -472,9 +456,7 @@ class MainWindow:
         self.redraw_scr()
 
     def resize_window(self, *args):
-        #self.screen.refresh()
-        curses.endwin()
-        self.screen = curses.initscr()
+        self.screen.clear()
         self.update_status = True
         curses.LINES, curses.COLS = self.screen.getmaxyx()
         self.content.update(curses.COLS)
@@ -506,7 +488,7 @@ class MainWindow:
         byte_index = par.byte_index
         curses.def_prog_mode()          # save current tty modes
         curses.endwin()
-        os.system(fbless_lib.options.editor % (byte_index, self.filename))
+        os.system(options.editor % (byte_index, self.filename))
         self.screen = curses.initscr()
 
 
@@ -515,54 +497,63 @@ class MainWindow:
 
         while True: # main loop
             ch = self.screen.getch()
-            #ch = curses.wgetch()
+            #ch = self.screen.get_wch()
 
-            if ch in fbless_lib.options.keys['quit']:
+            if ch in options.keys['quit']:
                 break
 
-            elif ch in fbless_lib.options.keys['toggle-status']:
-                fbless_lib.options.status = not fbless_lib.options.status
-                self.toggle_status(fbless_lib.options.status)
+            elif ch in options.keys['toggle-status']:
+                options.status = not options.status
+                self.toggle_status(options.status)
 
-            elif ch in fbless_lib.options.keys['goto-percent']:
+            elif ch in options.keys['goto-percent']:
                 self.goto_percent()
 
-            elif ch in fbless_lib.options.keys['search']:
+            elif ch in options.keys['search']:
                 self.search()
 
-            elif ch in fbless_lib.options.keys['search-next']:
+            elif ch in options.keys['search-next']:
                 self.search_next()
 
-            elif ch in fbless_lib.options.keys['jump-link']:
+            elif ch in options.keys['jump-link']:
                 self.jump_link()
 
-            elif ch in fbless_lib.options.keys['goto-link']:
+            elif ch in options.keys['goto-link']:
                 self.goto_link()
 
-            elif ch in fbless_lib.options.keys['backward']:
+            elif ch in options.keys['backward']:
                 self.goto_backward()
 
-            elif ch in fbless_lib.options.keys['foreward']:
+            elif ch in options.keys['foreward']:
                 self.goto_foreward()
 
-            elif ch in fbless_lib.options.keys['scroll-up']:
+            elif ch in options.keys['scroll-up']:
                 self.scroll_up()
 
-            elif ch in fbless_lib.options.keys['scroll-down']:
+            elif ch in options.keys['scroll-down']:
                 self.scroll_down()
 
-            elif ch in fbless_lib.options.keys['next-page']:
+            elif ch in options.keys['next-page']:
                 self.next_page()
 
-            elif ch in fbless_lib.options.keys['prev-page']:
+            elif ch in options.keys['prev-page']:
                 self.prev_page()
 
-            elif ch in fbless_lib.options.keys['goto-home']:
+            elif ch in options.keys['goto-home']:
                 self.goto_home()
 
-            elif ch in fbless_lib.options.keys['goto-end']:
+            elif ch in options.keys['goto-end']:
                 self.goto_end()
 
+            # elif ch in options.keys['edit-xml']:
+            #     self.edit_xml()
+
+            # elif ch != -1:
+            #     print('ch:', ch)
+
+            elif ch == curses.KEY_RESIZE:
+                curses.update_lines_cols()
+                self.resize_window()
 
 
             if self.message:
@@ -571,7 +562,7 @@ class MainWindow:
                 self.toggle_status(True) # in case if links has been removed
                 self.message = ''
 
-            elif fbless_lib.options.status:
+            elif options.status:
                 _time = time.strftime(' %H:%M ')
                 if _time != cur_time:
                     self.update_status = True
@@ -581,11 +572,11 @@ class MainWindow:
                 if self.message_timeout <= 0:
                     self.message_timeout = 0
                     self.update_status = True
-                    self.toggle_status(fbless_lib.options.status) # restore status
+                    self.toggle_status(options.status) # restore status
 
             if self.update_status and self.message_timeout <= 0:
 
-                if fbless_lib.options.status:
+                if options.status:
                     self.draw_status(_time)
 
                 if self.link_pos:
@@ -593,7 +584,7 @@ class MainWindow:
                     pos = self.link_pos[self.cur_link]
                     self.screen.move(*pos[:2])
 
-                elif not fbless_lib.options.status:
+                elif not options.status:
                     # move cursor to bottom-right corner
                     self.screen.move(curses.LINES-1, curses.COLS-1)
 
@@ -721,7 +712,7 @@ class Content:
         for par in self._content:
             n += len(par.data)
             if float(n)/total > percent:
-                t = curses.LINES - fbless_lib.options.context_lines - fbless_lib.options.status
+                t = curses.LINES - options.context_lines - options.status
                 par_index, line_index = self.indexes(i, -t) # back one screen
                 return par_index, line_index
             i += 1
@@ -792,20 +783,20 @@ def create_content(filename, scr_cols):
         zf = zipfile.ZipFile(filename)
         for zip_filename in zf.namelist():
             data = zf.read(zip_filename)
-            if data.startswith('<?xml'):
+            if data.startswith(((b'<?xml', b'\xef\xbb\xbf<?xml'))):
                 break
         else:
-            sys.exit('zip archive: xml file not found')
+            sys.exit(f'{filename}: zip archive: XML file not found')
     else:
-        encode = codecs.open(filename, encoding = "ISO-8859-1").readline()
-        encode = encode.split('"')[-2]
-        data = codecs.open(filename, encoding = encode).read()
-        if data.startswith('BZh'):
+        data = open(filename, 'rb').read()
+        if data.startswith(b'BZh'):
             import bz2
             data = bz2.decompress(data)
-        elif data.startswith('\x1f\x8b'):
+        elif data.startswith(b'\x1f\x8b'):
             import gzip
             data = gzip.GzipFile(fileobj=StringIO(data)).read()
+    if not data.startswith(((b'<?xml', b'\xef\xbb\xbf<?xml'))):
+        sys.exit(f'{filename}: file is not an XML file')
     content = fb2parse(data)
     #print(content)
     return Content(content, scr_cols)

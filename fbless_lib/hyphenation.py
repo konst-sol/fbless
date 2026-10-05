@@ -7,11 +7,7 @@
 import os, sys
 from glob import glob
 
-if __name__ == '__main__':
-    dict_files_dir = 'hyph_dicts'
-else:
-    dict_files_dir = os.path.join('fbless_lib', 'hyph_dicts')
-ru_dict_file = os.path.join('hyph_dicts', 'hyph_ru.dic')
+dict_files_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hyph_dicts')
 
 vowels = 'аеёиоуыэюяАЕЁИОУЫЭЮЯ'
 consonants = 'бвгджзйклмнпрстфхцчшщБВГДЖЗЙКЛМНПРСТФХЦЧШЩ'
@@ -21,36 +17,27 @@ class Hyphenation:
 
     def __init__(self):
         self.hyph_pats = {}
+        self.langs = []
 
-        # Ж-ГЙС РЕТЕОПУПЧ ДМС ТХУУЛПЗП СЪЩЛБ
-        self.ru_hyphenate_func = self.ru_hyphenate
-        #self.ru_hyphenate_func = self.tex_hyphenate
+        # ф-ция переносов для русского языка
+        #self.ru_hyphenate_func = self.ru_hyphenate
+        self.ru_hyphenate_func = self.tex_hyphenate
 
-        dfd = '' #None
-        for f in sys.path:
-            if os.path.exists(os.path.join(f, ru_dict_file)):
-                dfd = os.path.join(f, dict_files_dir)
-                break
-
-        self.dict_files_dir = dfd
-
-        if not dfd:
-            print ('ERROR: can\'t read hyphenation files')
+        if not os.path.isdir(dict_files_dir):
+            print(f'ERROR: {dict_files_dir}: can\'t read hyphenation files')
             return
 
-        self.langs = []
         #self.hyph_pats['ru'] = self.read_patterns('ru')
 
 
     def get_langs(self):
-
         if self.langs:
             return self.langs
 
-        langs = map(lambda x: x[len(self.dict_files_dir)+6:-4],
-                    glob(os.path.join(self.dict_files_dir, 'hyph_*.dic')))
-        if os.path.exists(os.path.join(self.dict_files_dir, 'langs.txt')):
-            for s in open(os.path.join(self.dict_files_dir, 'langs.txt')).readlines():
+        langs = map(lambda x: x[len(dict_files_dir)+6:-4],
+                    glob(os.path.join(dict_files_dir, 'hyph_*.dic')))
+        if os.path.exists(os.path.join(dict_files_dir, 'langs.txt')):
+            for s in open(os.path.join(dict_files_dir, 'langs.txt')).readlines():
                 s1, s2 = s.split(' ', 1)
                 if s1 in langs:
                     self.langs.append((s1, s2[:-1]))
@@ -66,8 +53,9 @@ class Hyphenation:
 
     def read_patterns(self, lang):
 
-        dict_file = os.path.join(self.dict_files_dir, 'hyph_%s.dic' % lang)
+        dict_file = os.path.join(dict_files_dir, 'hyph_%s.dic' % lang)
         if not os.path.exists(dict_file):
+            print(f'dict file {dict_file} not found')
             return None
 
         hyph_pats = {}
