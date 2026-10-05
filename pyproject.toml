@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fbless"
+version = "0.2.1"
+description = "Curses based FictionBook2 viewer."
+readme = "README"  # Укажите актуальное имя файла описания, если он есть в корне
+authors = [
+    {name = "Con Radchenko", email = "lankier@gmail.com"}
+]
+license = "GPL-2.0-only"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Environment :: Console :: Curses",
+]
+dependencies = [
+    # Перечислите зависимости, если они нужны (например: "windows-curses; sys_platform=='win32'")
+]
+
+# Автоматически создает исполняемую команду `fbless` в системе вместо старого параметра scripts.
+# Предполагается, что в fbless_lib/__init__.py или fbless_lib/main.py есть функция main().
+[project.scripts]
+fbless = "fbless_lib:main"
+
+[tool.setuptools]
+#packages = ["fbless_lib"]
+packages = { find = { namespaces = true } }
+
+[tool.setuptools.package-data]
+#fbless_lib = ["hyph_dicts/*"]
+"*" = ["hyph_dicts/*"]
+
+
