@@ -5,12 +5,12 @@ fbless - консольный ридер FB2 файлов.
 
 Требования
 ==========
-Python
+Python3
 Curses
 
 Использование
 =============
-$ ./fbless /path/to/file.fb2
+$ ./fbless.py /path/to/file.fb2
 
 Управление
 ==========
