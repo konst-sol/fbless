@@ -24,6 +24,8 @@ class MainWindow:
         self.filename = None
         if len(sys.argv) > 1:
             self.filename = os.path.abspath(sys.argv[1])
+            if not os.path.exists(self.filename):
+                sys.exit(f'file not found: {self.filename}')
         self.par_index = 0
         self.line_index = 0
         positions = self.load_positions()
@@ -31,10 +33,14 @@ class MainWindow:
             sys.exit('missing filename')
         if self.filename is None:
             # load last file
-            l = positions[0]
-            self.filename = l[0]
-            self.par_index = int(l[1])
-            self.line_index = int(l[2])
+            for line in positions:
+                if os.path.exists(line[0]):
+                    break
+            else:
+                sys.exit('missing filename')
+            self.filename = line[0]
+            self.par_index = int(line[1])
+            self.line_index = int(line[2])
         else:
             for l in positions:
                 if l[0] == self.filename:
