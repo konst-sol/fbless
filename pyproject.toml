@@ -9,8 +9,11 @@ description = "Curses based FictionBook2 viewer."
 readme = "README"
 authors = [
     {name = "Con Radchenko", email = "lankier@gmail.com"}
+    {name = "Nikita Menkovich", email = "menkovich@gmail.com"}
+    {email = "titgrom@gmail.com"}
 ]
 license = "GPL-2.0-only"
+license-files = ["LICENSE"]
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -18,6 +21,9 @@ classifiers = [
 ]
 dependencies = [
 ]
+
+[project.urls]
+Repository = "https://github.com/konst-sol/fbless"
 
 [project.scripts]
 fbless = "fbless_lib:main"
