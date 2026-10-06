@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- mode: python; coding: UTF-8; -*-
+# -*- mode: python; coding: utf-8; -*-
 #
 
 import sys, os
@@ -15,7 +15,7 @@ import curses.ascii as ascii
 
 from fbless_lib.fb2parser import fb2parse
 from fbless_lib.paragraph import attr
-import fbless_lib.options as options
+from fbless_lib import options
 
 
 class MainWindow:
@@ -72,7 +72,7 @@ class MainWindow:
         self.content = create_content(self.filename, curses.COLS)
         self.update_status = True
 
-        if not options.USE_WCHAR:
+        if not options.use_wchar:
             for act, value in options.keys.items():
                 new_value = []
                 for key in value:
@@ -114,7 +114,7 @@ class MainWindow:
                 save_pos.append(l)
         fd = open(os.path.expanduser(options.rc_file), 'w')
         for l in save_pos:
-            print (' '.join(l), file=fd)
+            print(' '.join(l), file=fd)
 
     def init_color(self):
         n = 1
@@ -340,7 +340,7 @@ class MainWindow:
             #return ch < 256 and chr(ch) in '0123456789'
             return isinstance(ch, str) and ch.isdigit()
         s = self.get_str(validator)
-        #print 'str:', s
+        #print('str:', s)
         #self.screen.nodelay(1)
         #curses.noecho()
         self.update_status = True
@@ -363,7 +363,7 @@ class MainWindow:
             if id.startswith('#'):
                 id = id[1:]
             else:
-                print ('external link:', id)
+                print('external link:', id)
                 return
             i = self.content.get_by_id(id)
             if i is None:
@@ -512,12 +512,12 @@ class MainWindow:
         cur_time = ''
 
         while True: # main loop
-            if options.USE_WCHAR:
+            if options.use_wchar:
                 try:
                     ch = self.screen.get_wch()
                 except curses.error as e:
                     if str(e) != "no input":
-                        raise e
+                        raise
                     else:
                         ch = -1
             else:
@@ -838,16 +838,16 @@ def test(file_name):
             s, t = c.get(pi, li)
         except IndexError:
             break
-        print (t, '>'+str(s)+'<')
+        print(t, '>'+str(s)+'<')
         pi, li = c.indexes()
         li += 1
         i += 1
         if i > 200:
             break
-    #print ('---------->', pi, li)
+    #print('---------->', pi, li)
     s, t = c.get(pi, li)
-    print (s)
-    print (c.indexes())
+    print(s)
+    print(c.indexes())
     
 if __name__ == '__main__':
     test(sys.argv[1])

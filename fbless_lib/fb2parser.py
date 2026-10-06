@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- mode: python; coding: UTF-8; -*-
+# -*- mode: python; coding: utf-8; -*-
 
 import sys, string
 from io import StringIO
@@ -75,7 +75,7 @@ class ContentHandler:
             data = ''.join(self.cur_data)
             if name in ['strong', 'emphasis', 'a', 'style']:
                 if not self.cur_attr:
-                    ##print 'FB2 PARSER ERROR: nested styles?'
+                    ##print('FB2 PARSER ERROR: nested styles?')
                     return
                 self.cur_attr.insert(1, len(data))
                 self.attrs.append(self.cur_attr)
@@ -166,9 +166,9 @@ def fb2parse(data):
 
 if __name__ == '__main__':
     fn = sys.argv[1]
-    #from main import create_content
+    #from fbless_lib.main import create_content
     #c = create_content(fn, 80)
-    c = fb2parse(file(fn).read())
+    c = fb2parse(open(fn).read())
     #for s, t in c:
-    #    print t, s
+    #    print(t, s)
 

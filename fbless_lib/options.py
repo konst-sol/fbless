@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- mode: python; coding: UTF-8; -*-
+# -*- mode: python; coding: utf-8; -*-
 #
 
 ## COLOR_BLACK   Black
@@ -111,7 +111,7 @@ options = {
     }
 
 
-USE_WCHAR = False # set True if you want to add a Cyrillic char
+use_wchar = False # set True if you want to add a Cyrillic char
 keys = {
     'quit'          : ('q', 'Q'),
     'toggle-status' : ('s',),

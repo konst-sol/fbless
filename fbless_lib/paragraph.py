@@ -1,29 +1,24 @@
 #!/usr/bin/env python
-# -*- mode: python; coding: UTF-8; -*-
+# -*- mode: python; coding: utf-8; -*-
 
 import sys
-import locale
 
 from fbless_lib.hyphenation import Hyphenation
 from fbless_lib.options import options, replace_chars
 
 
-#screen_cols = 80
-
-default_charset = locale.getdefaultlocale()[1]
-
 hyph = Hyphenation()
 
 # u'\u2013' -> '--'
 # u'\u2014' -> '---'
-# u'\xa0'   -> ОЕТБЪТЩЧОЩК РТПВЕМ
+# u'\xa0'   -> неразрывный пробел
 # u'\u2026' -> dots...
 # u'\xab'   -> '<<'
 # u'\xbb'   -> '>>'
 # u'\u201c' -> ``
 # u'\u201d' -> ''
 # u'\u201e' -> ,,
-# u'\xad'   -> НСЗЛЙК РЕТЕОПУ
+# u'\xad'   -> мягкий перенос
 def replace(s):
     return (s
             .replace(u'\u2013', u'-')
@@ -69,7 +64,7 @@ attr = Attr()
 class Paragraph:
     def __init__(self, type='p', data='', attrs=[], lang=None,
                  id=None, byte_index=0):
-        #print 'attrs:', attrs
+        #print('attrs:', attrs)
         self.type = type
         self.data = data
         self.attrs = attrs
@@ -144,7 +139,7 @@ class Paragraph:
             offsets.append((end, attr.cancel_search))
         offsets.sort()                  # sort by offsets
 
-        #print offsets
+        #print(offsets)
 
         first_line_offset = self.first_line_indent
         words = [' '*(self.first_line_indent-1)]
@@ -245,24 +240,21 @@ class Paragraph:
         self.lines = lines
 
 
-
-
 if __name__ == '__main__':
     s='Я как человек испорченный историческим образованием всю дорогу не понимал почему игре приписывают историческую достоверность. Действительно, в деталях сходство очевидно, но в целом RDR2 имеет крайне смутное представление о тогдашних событиях и общественных процессах. Даже если вы не согласитесь с выводами, надеюсь, узнаете чуть больше о той эпохе.'
-    par=Paragraph(data=s, attrs=[(6, 10, attr.strong),
-                                 (100, 240, attr.strong)])
+    par=Paragraph(data=s, attrs=[(6, 10, attr.strong), (100, 240, attr.strong)])
     par.scr_cols = 48
     par.search_offsets = [(0, 50), (78, 120)]
     par.split_string()
     for l in par.lines:
         if 0:
-            print (l)
+            print(l)
         elif 0:
             for w in l:
                 if w == ' ':
-                    print ('<sp>')
+                    print('<sp>')
                 else:
-                    print (w)
+                    print(w)
         else:
             for w in l:
                 if isinstance(w, int):
@@ -273,15 +265,14 @@ if __name__ == '__main__':
                     pass
                 else:
                     print(w, end='')
-            print ()
-    print ('~'*(par.scr_cols-par.right_indent))
+            print()
+    print('~'*(par.scr_cols-par.right_indent))
 
-    #par.print_str()
 ##     for s in par.lines:
 ##         if isinstance(s, int):
-##             print '>', s, '<'
+##             print('>', s, '<')
 ##         else:
 ##             for w in s:
-##                 print w,
-##             print
+##                 print(w, ebd='')
+##             print()
 
