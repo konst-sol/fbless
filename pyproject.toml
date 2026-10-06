@@ -8,8 +8,8 @@ version = "0.2.1"
 description = "Curses based FictionBook2 viewer."
 readme = "README"
 authors = [
-    {name = "Con Radchenko", email = "lankier@gmail.com"}
-    {name = "Nikita Menkovich", email = "menkovich@gmail.com"}
+    {name = "Con Radchenko", email = "lankier@gmail.com"},
+    {name = "Nikita Menkovich", email = "menkovich@gmail.com"},
     {email = "titgrom@gmail.com"}
 ]
 license = "GPL-2.0-only"
