@@ -111,22 +111,23 @@ options = {
     }
 
 
+USE_WCHAR = False # set True if you want to add a Cyrillic char
 keys = {
-    'quit'          : (ord('q'), ord('Q')),
-    'toggle-status' : (ord('s'),),
-    'search'        : (ord('f'), ord('/'),),
-    'search-next'   : (ord('n'),),
-    'goto-percent'  : (ord('5'), ord('G')),
-    'jump-link'     : (ord('\t'), ord('j')),
-    'goto-link'     : (curses.KEY_ENTER, ord('\n'), curses.KEY_RIGHT),
+    'quit'          : ('q', 'Q'),
+    'toggle-status' : ('s',),
+    'search'        : ('f', '/'),
+    'search-next'   : ('n',),
+    'goto-percent'  : ('5', 'G'),
+    'jump-link'     : ('\t', 'j'),
+    'goto-link'     : (curses.KEY_ENTER, '\n', curses.KEY_RIGHT),
     'backward'      : (curses.KEY_LEFT,),
-    'foreward'      : (curses.KEY_BACKSPACE, ord('l'),),
+    'foreward'      : (curses.KEY_BACKSPACE, 'l'),
     'scroll-up'     : (curses.KEY_UP,),
     'scroll-down'   : (curses.KEY_DOWN,),
-    'next-page'     : (ord(' '), curses.KEY_NPAGE),
+    'next-page'     : (' ', curses.KEY_NPAGE),
     'prev-page'     : (curses.KEY_PPAGE,),
-    'goto-home'     : (ord('g'), curses.KEY_HOME,),
+    'goto-home'     : ('g', curses.KEY_HOME,),
     'goto-end'      : (curses.KEY_END,),
-    'edit-xml'      : (ord('o'),),
+    'edit-xml'      : ('o',),
 }
 

@@ -72,6 +72,16 @@ class MainWindow:
         self.content = create_content(self.filename, curses.COLS)
         self.update_status = True
 
+        if not options.USE_WCHAR:
+            for act, value in options.keys.items():
+                new_value = []
+                for key in value:
+                    if isinstance(key, str):
+                        new_value.append(ord(key))
+                    else:
+                        new_value.append(key)
+                options.keys[act] = new_value
+
         self.redraw_scr()
 
     def init_screen(self, screen):
@@ -502,8 +512,17 @@ class MainWindow:
         cur_time = ''
 
         while True: # main loop
-            ch = self.screen.getch()
-            #ch = self.screen.get_wch()
+            if options.USE_WCHAR:
+                try:
+                    ch = self.screen.get_wch()
+                except curses.error as e:
+                    if str(e) != "no input":
+                        raise e
+                    else:
+                        ch = -1
+            else:
+                ch = self.screen.getch()
+
 
             if ch in options.keys['quit']:
                 break
