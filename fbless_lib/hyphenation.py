@@ -51,7 +51,7 @@ class Hyphenation:
 
     def read_patterns(self, lang):
 
-        dict_file = os.path.join(dict_files_dir, 'hyph_%s.dic' % lang)
+        dict_file = os.path.join(dict_files_dir, 'hyph_%s.dic' % lang.lower())
         if not os.path.exists(dict_file):
             print(f'dict file {dict_file} not found')
             return None

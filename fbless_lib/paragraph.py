@@ -137,7 +137,8 @@ class Paragraph:
         for begin, end in self.search_offsets:
             offsets.append((begin, attr.search))
             offsets.append((end, attr.cancel_search))
-        offsets.sort()                  # sort by offsets
+
+        offsets.sort(key=lambda x: x[0])                  # sort by offsets
 
         #print(offsets)
 

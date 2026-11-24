@@ -15,7 +15,6 @@ class StopParsing(Exception):
 
 class ContentHandler:
     def __init__(self):
-##         self.elem_stack = []
         self.is_desc = False
         self.cur_data = []
         self.is_title = False
@@ -128,7 +127,6 @@ class ContentHandler:
         elif name == 'lang':
             self.lang = ''.join(self.cur_data).strip()
 
-        #del self.elem_stack[-1]
         self.cur_data = []
         self.links = {}
 
